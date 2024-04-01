@@ -51,24 +51,52 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
+uint32_t tiempo_parpadeo=200;
+
 uint8_t estado=0;
 uint32_t tiempo=0;
 uint8_t contador=6;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  /* EXTI line interrupt detected */
-  if(GPIO_Pin==izquierda_Pin)
-  {
-    estado=1;
-    contador =6;
-  }
-  if(GPIO_Pin==derecha_Pin)
-   {
-     estado=2;
-     contador =6;
-   }
+	  /* EXTI line interrupt detected */
+	 if(GPIO_Pin==izquierda_Pin)
+	  {
+	    estado=1;
+	   contador =6;
+	 }
+	 if(GPIO_Pin==estacionar_Pin)
+	 {
+	   estado=3;
+	    contador =6;
+	  }
+	  if(GPIO_Pin==derecha_Pin)
+	   {
+	    estado=2;
+	     contador =6;
+	   }
+
+
+
+
+	if (GPIO_Pin == izquierda_Pin) {
+		//HAL_UART_Transmit(&huart2, "S1\r\n", 4, 10);
+		if (HAL_GetTick() < (tiempo + 300)) { // if last press was in the last 300ms
+			contador = 0xFFFFFF; // a long time toggling (infinite)
+		} else {
+			contador = 6;
+		}
+		tiempo = HAL_GetTick();
+	} else if (GPIO_Pin == derecha_Pin) {
+		contador = 0;
+	}
 }
+
+
+
+
+
+
 
 
 void heartbeat(void)
@@ -120,40 +148,52 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
-    {
-      /* USER CODE END WHILE */
-  	  heartbeat();
-      /* USER CODE BEGIN 3 */
-  //	if(HAL_GPIO_ReadPin(GPIOA, izquierda_Pin)==0){
-  //	    estado=1;
-  //	    //tiempo=HAL_GetTick();
-  //	}
-  	  if (estado==2){
-  	   		if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
-  	   			HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
-  	   			HAL_GPIO_TogglePin(GPIOB, LD4_Pin);
-  	   			tiempo=HAL_GetTick();
-  	   			contador--;
-  	   			if (contador==0){
-  	   				estado=0;
-  	   			}
-  	   		}
-  	   		}
+   {
+     /* USER CODE END WHILE */
+ 	  heartbeat();
+     /* USER CODE BEGIN 3 */
+ //	if(HAL_GPIO_ReadPin(GPIOA, izquierda_Pin)==0){
+ //	    estado=1;
+ //	    //tiempo=HAL_GetTick();
+ //	}
+ 	 if (estado==3){
+ 	 	   if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
+ 	 		HAL_GPIO_TogglePin(GPIOA, LD3_Pin);
+ 	 	   	HAL_GPIO_TogglePin(GPIOB, LD4_Pin);
+ 	 	   	tiempo=HAL_GetTick();
+ 	 	   	contador--;
+ 	 	   	if (contador==0){
+ 	 	   		estado=0;
+ 	 	   	}
+ 	 	   }
+ 	 	 }
+ 	  if (estado==2){
+ 	   		if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
+ 	   			HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
+ 	   			HAL_GPIO_TogglePin(GPIOB, LD4_Pin);
+ 	   			tiempo=HAL_GetTick();
+ 	   			contador--;
+ 	   			if (contador==0){
+ 	   				estado=0;
+ 	   			}
+ 	   		}
+ 	   		}
 
-  	if (estado==1){
-  		if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
-  			HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
-  			HAL_GPIO_TogglePin(GPIOA, LD3_Pin);
-  			tiempo=HAL_GetTick();
-  			contador--;
-  			if (contador==0){
-  				estado=0;
-  			}
-  		 }
-  	   }
-    	 }
-  }
+ 	if (estado==1){
+ 		if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
+ 			HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
+ 			HAL_GPIO_TogglePin(GPIOA, LD3_Pin);
+ 			tiempo=HAL_GetTick();
+ 			contador--;
+ 			if (contador==0){
+ 				estado=0;
+ 			}
+ 		 }
+ 	   }
+   	 }
+ }
 
 /**
   * @brief System Clock Configuration
@@ -262,8 +302,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(Boton_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : izquierda_Pin izquierdaA4_Pin */
-  GPIO_InitStruct.Pin = izquierda_Pin|izquierdaA4_Pin;
+  /*Configure GPIO pins : izquierda_Pin estacionar_Pin */
+  GPIO_InitStruct.Pin = izquierda_Pin|estacionar_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);

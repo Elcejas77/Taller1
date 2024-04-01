@@ -62,9 +62,9 @@ void Error_Handler(void);
 #define izquierda_Pin GPIO_PIN_1
 #define izquierda_GPIO_Port GPIOA
 #define izquierda_EXTI_IRQn EXTI1_IRQn
-#define izquierdaA4_Pin GPIO_PIN_4
-#define izquierdaA4_GPIO_Port GPIOA
-#define izquierdaA4_EXTI_IRQn EXTI4_IRQn
+#define estacionar_Pin GPIO_PIN_4
+#define estacionar_GPIO_Port GPIOA
+#define estacionar_EXTI_IRQn EXTI4_IRQn
 #define LD_Pin GPIO_PIN_5
 #define LD_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_6
@@ -76,7 +76,7 @@ void Error_Handler(void);
 #define derecha_EXTI_IRQn EXTI0_IRQn
 #define LD4_Pin GPIO_PIN_6
 #define LD4_GPIO_Port GPIOB
-#define tiempo_parpadeo 300
+
 
 /* USER CODE BEGIN Private defines */
 

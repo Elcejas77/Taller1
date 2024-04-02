@@ -51,28 +51,33 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-uint32_t tiempo_parpadeo=200;
+uint32_t tiempo_parpadeo=500;
 
 uint8_t estado=0;
 uint32_t tiempo=0;
-uint8_t contador=6;
+uint8_t contador=0;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	  /* EXTI line interrupt detected */
 	 if(GPIO_Pin==izquierda_Pin)
-	  {
-	    estado=1;
+	  {HAL_UART_Transmit(&huart2, "d_izquierda\r\n", 13, 10);
+
+
+	  estado=1;
 	   contador =6;
 	 }
 	 if(GPIO_Pin==estacionar_Pin)
-	 {
+	 {HAL_UART_Transmit(&huart2, "Estacionaria\r\n", 14, 10);
 	   estado=3;
 	    contador =6;
+		HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
+	 	 	  HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
 	  }
 	  if(GPIO_Pin==derecha_Pin)
-	   {
-	    estado=2;
+	   {HAL_UART_Transmit(&huart2, "d_derecha\r\n", 11, 10);
+
+	   estado=2;
 	     contador =6;
 	   }
 
@@ -80,7 +85,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 
 	if (GPIO_Pin == izquierda_Pin) {
-		//HAL_UART_Transmit(&huart2, "S1\r\n", 4, 10);
+
 		if (HAL_GetTick() < (tiempo + 300)) { // if last press was in the last 300ms
 			contador = 0xFFFFFF; // a long time toggling (infinite)
 		} else {
@@ -103,7 +108,7 @@ void heartbeat(void)
 {
 	static uint32_t heartbeat_tick = 0;
 	if (heartbeat_tick < HAL_GetTick()) {
-		heartbeat_tick = HAL_GetTick() + 500;
+		heartbeat_tick = HAL_GetTick() + 1000;
 		HAL_GPIO_TogglePin(GPIOA, LD_Pin);
 	}
 }
@@ -166,17 +171,21 @@ int main(void)
  	 	   	contador--;
  	 	   	if (contador==0){
  	 	   		estado=0;
+ 	 	   	HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
+ 	 	  HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
  	 	   	}
  	 	   }
  	 	 }
  	  if (estado==2){
  	   		if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
  	   			HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
+
  	   			HAL_GPIO_TogglePin(GPIOB, LD4_Pin);
  	   			tiempo=HAL_GetTick();
  	   			contador--;
  	   			if (contador==0){
  	   				estado=0;
+ 	   			 HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
  	   			}
  	   		}
  	   		}
@@ -184,11 +193,13 @@ int main(void)
  	if (estado==1){
  		if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
  			HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
+
  			HAL_GPIO_TogglePin(GPIOA, LD3_Pin);
  			tiempo=HAL_GetTick();
  			contador--;
  			if (contador==0){
  				estado=0;
+ 				  HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
  			}
  		 }
  	   }

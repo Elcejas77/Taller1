@@ -64,39 +64,41 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	  {HAL_UART_Transmit(&huart2, "d_izquierda\r\n", 13, 10);
 	  HAL_GPIO_WritePin(GPIOA, LD3_Pin, 0);
 	  estado=1;
-	  contador =CONTADOR;
+	  contador =5;
 	 }
-	 if(GPIO_Pin==estacionar_Pin)
-	 {HAL_UART_Transmit(&huart2, "Estacionar\r\n", 14, 10);
-	   estado=3;
-	    contador =6;
-		HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
-	 	HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
-	  }
-	  if(GPIO_Pin==derecha_Pin)
+
+	 if(GPIO_Pin==derecha_Pin)
 	   {HAL_UART_Transmit(&huart2, "d_derecha\r\n", 11, 10);
 
 	   HAL_GPIO_WritePin(GPIOB, LD4_Pin, 0);
 	   estado=2;
-	     contador =CONTADOR;
+	     contador =5;
 	   }
+	 if(GPIO_Pin==estacionar_Pin)
+		 {HAL_UART_Transmit(&huart2, "Estacionar\r\n", 14, 10);
+		 	estado=3;
+		    contador =0xFFFFFF;
+			HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
+		 	HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
+		  }
 
 
 
+	 //filtro para evitar los rebotes que presenta el boton
 
 	if (GPIO_Pin == izquierda_Pin) {
 
-		if ((HAL_GetTick() < (tiempo + 1000))&&(HAL_GetTick() > (tiempo + 150))) { // if last press was in the last 300ms
+		if ((HAL_GetTick() < (tiempo + 500))&&(HAL_GetTick() > (tiempo + 150))) { // if last press was in the last 300ms
 			contador = 0xFFFFFF; // a long time toggling (infinite)
 		} else {
-			contador = CONTADOR;
+			contador = 5;
 		}
 		tiempo = HAL_GetTick();
 	} if (GPIO_Pin == derecha_Pin) {
-		if ((HAL_GetTick() < (tiempo + 1000))&&(HAL_GetTick() > (tiempo + 150))) { // if last press was in the last 300ms
+		if ((HAL_GetTick() < (tiempo + 500))&&(HAL_GetTick() > (tiempo + 150))) { // if last press was in the last 300ms
 			contador = 0xFFFFFF; // a long time toggling (infinite)
 		} else {
-			contador = CONTADOR;
+			contador = 5;
 		}
 		tiempo = HAL_GetTick();
 
@@ -107,13 +109,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 
 }
-
-
-
-
-
-
-
 
 void heartbeat(void)
 {
@@ -170,50 +165,51 @@ int main(void)
      /* USER CODE END WHILE */
  	  heartbeat();
      /* USER CODE BEGIN 3 */
- //	if(HAL_GPIO_ReadPin(GPIOA, izquierda_Pin)==0){
- //	    estado=1;
- //	    //tiempo=HAL_GetTick();
- //	}
+
  	 if (estado==3){
  	 	   if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
  	 		HAL_GPIO_TogglePin(GPIOA, LD3_Pin);
  	 	   	HAL_GPIO_TogglePin(GPIOB, LD4_Pin);
  	 	   	tiempo=HAL_GetTick();
- 	 	   	contador--;
- 	 	   	if ((contador==0)){
- 	 	   		estado=0;
- 	 	   	HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
- 	 	   	HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
+ 	 	    contador--;
+
+ 	 	   		if (contador==0){
+ 	 	   			estado=0;
+ 	 	   			HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
+ 	 	   			HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
  	 	   	}
  	 	   }
  	 	 }
- 	  if (estado==2||(GPIO_Pin == izquierda_Pin)){
 
+
+ 	  if (estado==2){
  	   		if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
  	   			HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
 
  	   			HAL_GPIO_TogglePin(GPIOB, LD4_Pin);
  	   			tiempo=HAL_GetTick();
  	   			contador--;
- 	   			if (contador==0){
+ 	   			if ((contador==0)){
  	   				estado=0;
- 	   			 HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
+ 	   			 HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
+
  	   			}
+
  	   		}
  	   		}
 
- 	if (estado==1||(GPIO_Pin == izquierda_Pin)){
-
+ 	if (estado==1){
  		if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
  			HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
-
  			HAL_GPIO_TogglePin(GPIOA, LD3_Pin);
  			tiempo=HAL_GetTick();
  			contador--;
- 			if (contador==0){
+ 			if ((contador==0)){
  				estado=0;
  				  HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
+
  			}
+
  		 }
  	   }
    	 }

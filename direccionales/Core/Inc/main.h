@@ -77,6 +77,7 @@ void Error_Handler(void);
 #define LD4_Pin GPIO_PIN_6
 #define LD4_GPIO_Port GPIOB
 
+#define CONTADOR 5
 
 /* USER CODE BEGIN Private defines */
 

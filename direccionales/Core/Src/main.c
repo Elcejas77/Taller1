@@ -52,7 +52,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 uint32_t tiempo_parpadeo=500;
-
+uint8_t estacionando =0;
 uint8_t estado=0;
 uint32_t tiempo=HAL_GetTick;
 uint8_t contador=0;
@@ -63,23 +63,27 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	 if(GPIO_Pin==izquierda_Pin)
 	  {HAL_UART_Transmit(&huart2, "d_izquierda\r\n", 13, 10);
 	  HAL_GPIO_WritePin(GPIOA, LD3_Pin, 0);
+	  HAL_GPIO_EXTI_IRQHandler(estacionar_Pin);
 	  estado=1;
 	  contador =5;
 	 }
 
 	 if(GPIO_Pin==derecha_Pin)
 	   {HAL_UART_Transmit(&huart2, "d_derecha\r\n", 11, 10);
-
+	   HAL_GPIO_EXTI_IRQHandler(estacionar_Pin);
 	   HAL_GPIO_WritePin(GPIOB, LD4_Pin, 0);
 	   estado=2;
 	     contador =5;
 	   }
 	 if(GPIO_Pin==estacionar_Pin)
 		 {HAL_UART_Transmit(&huart2, "Estacionar\r\n", 14, 10);
-		 	estado=3;
+		 	estacionando=!estacionando;
 		    contador =0xFFFFFF;
+
+		 	HAL_GPIO_EXTI_IRQHandler(estacionar_Pin);
 			HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
 		 	HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
+
 		  }
 
 
@@ -106,10 +110,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 
 
+	if (GPIO_Pin ==estacionar_Pin) {
 
-
+				if ((HAL_GetTick() > (tiempo + 200))) { // if last press was in the last 300ms
+					estacionando=!estacionando; // a long time toggling (infinite)
+				} else {
+					estacionando = estacionando;
+				}tiempo = HAL_GetTick();
+	}
 }
-
 void heartbeat(void)
 {
 	static uint32_t heartbeat_tick = 0;
@@ -118,6 +127,7 @@ void heartbeat(void)
 		HAL_GPIO_TogglePin(GPIOA, LD_Pin);
 	}
 }
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -163,23 +173,27 @@ int main(void)
   while (1)
    {
      /* USER CODE END WHILE */
- 	  heartbeat();
+ 	 heartbeat();
      /* USER CODE BEGIN 3 */
 
- 	 if (estado==3){
+ 	 if (estacionando==1){
  	 	   if((HAL_GetTick()-tiempo)>tiempo_parpadeo){
  	 		HAL_GPIO_TogglePin(GPIOA, LD3_Pin);
  	 	   	HAL_GPIO_TogglePin(GPIOB, LD4_Pin);
  	 	   	tiempo=HAL_GetTick();
  	 	    contador--;
+ 	 	   }
 
- 	 	   		if (contador==0){
+ 	 	    if ((estado==1||estado==2)){
  	 	   			estado=0;
+ 	 	   			estacionando=0;
  	 	   			HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
  	 	   			HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
  	 	   	}
  	 	   }
- 	 	 }
+
+
+
 
 
  	  if (estado==2){
@@ -191,7 +205,7 @@ int main(void)
  	   			contador--;
  	   			if ((contador==0)){
  	   				estado=0;
- 	   			 HAL_GPIO_WritePin(GPIOA, LD3_Pin, 1);
+ 	   			 HAL_GPIO_WritePin(GPIOB, LD4_Pin, 1);
 
  	   			}
 
